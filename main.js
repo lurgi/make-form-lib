@@ -10,6 +10,7 @@ setupForm({
     email: emailSchema,
     password: passwordSchema,
   },
+  onError() {},
   async onSubmit(data) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -21,7 +22,7 @@ setupForm({
 });
 
 // library-side
-function setupForm({ form, fields, onSubmit }) {
+function setupForm({ form, fields, onError, onSubmit }) {
   let isSubmitting = false;
 
   // const submitBtn = form.querySelector("button[type='submit']");
@@ -45,12 +46,15 @@ function setupForm({ form, fields, onSubmit }) {
       const schema = fields[key];
       const result = schema.safeParse(value);
       const errorElement = form.querySelector(`#${key}-error`);
+
       if (result.success) {
         if (errorElement) errorElement.innerHTML = "";
       } else {
         valid = false;
         errors[key] = result.error;
-        if (errorElement) {
+        if (onError) {
+          onError({ key, value, result });
+        } else if (errorElement) {
           errorElement.innerHTML = result.error.issues[0].message;
         }
       }
