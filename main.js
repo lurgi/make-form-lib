@@ -10,26 +10,43 @@ setupForm({
     email: emailSchema,
     password: passwordSchema,
   },
-  onSubmit(data) {
-    console.log("onSubmit", data);
+  async onSubmit(data) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        console.log("onSubmit", data);
+        resolve();
+      }, 3000);
+    });
   },
 });
 
 // library-side
 function setupForm({ form, fields, onSubmit }) {
-  form.addEventListener("submit", (event) => {
+  let isSubmitting = false;
+
+  // const submitBtn = form.querySelector("button[type='submit']");
+  // if (!submitBtn) console.error("submit button is missing");
+
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+    isSubmitting = true;
+    form.setAttribute("data-submitting", true);
 
     const data = {};
     const errors = {};
     let valid = true;
+
     Object.keys(fields).forEach((key) => {
       const value = form[key].value;
       const schema = fields[key];
       const result = schema.safeParse(value);
       const errorElement = form.querySelector(`#${key}-error`);
-      if (!result.success) {
-        errorElement.innerHTML = "";
+      if (result.success) {
+        if (errorElement) errorElement.innerHTML = "";
       } else {
         valid = false;
         errors[key] = result.error;
@@ -41,9 +58,11 @@ function setupForm({ form, fields, onSubmit }) {
     });
 
     if (valid) {
-      onSubmit(data);
+      await onSubmit(data);
     } else {
       console.log("error", errors);
     }
+    isSubmitting = false;
+    form.setAttribute("data-submitting", false);
   });
 }
