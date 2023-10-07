@@ -27,9 +27,15 @@ function setupForm({ form, fields, onSubmit }) {
       const value = form[key].value;
       const schema = fields[key];
       const result = schema.safeParse(value);
+      const errorElement = form.querySelector(`#${key}-error`);
       if (!result.success) {
+        errorElement.innerHTML = "";
+      } else {
         valid = false;
         errors[key] = result.error;
+        if (errorElement) {
+          errorElement.innerHTML = result.error.issues[0].message;
+        }
       }
       data[key] = value;
     });
